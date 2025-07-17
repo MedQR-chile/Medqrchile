@@ -1,41 +1,47 @@
 import React, { useEffect, useState } from 'react';
-import { useAuth } from './AuthContext';
-import { db } from './firebase'; 
+import { db } from './firebase';
 import { doc, getDoc } from 'firebase/firestore';
-import { useNavigate } from 'react-router-dom';
-import '../index.css'; // importa los estilos
+import { useNavigate, useParams } from 'react-router-dom';
+import '../index.css';
 
 function VerFichaIndividual() {
-  const { user } = useAuth();
+  const { id } = useParams(); // ID desde la URL
   const [ficha, setFicha] = useState(null);
+  const [cargando, setCargando] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     const obtenerFicha = async () => {
-      const ref = doc(db, 'fichas_individuales', user.uid);
-      const snap = await getDoc(ref);
-      setFicha(snap.exists() ? snap.data() : null);
+      try {
+        const ref = doc(db, 'fichas_individuales', id);
+        const snap = await getDoc(ref);
+        if (snap.exists()) {
+          setFicha(snap.data());
+        } else {
+          setFicha(null);
+        }
+      } catch (error) {
+        console.error('Error al obtener la ficha:', error);
+        setFicha(null);
+      } finally {
+        setCargando(false);
+      }
     };
-    if (user) obtenerFicha();
-  }, [user]);
+
+    if (id) obtenerFicha();
+  }, [id]);
+
+  if (cargando) {
+    return <p style={{ textAlign: 'center' }}>Cargando ficha médica...</p>;
+  }
 
   if (ficha === null) {
     return (
       <div className="view-container">
         <div className="view-body">
-          <p>No hay ficha individual registrada.</p>
+          <p>Ficha no encontrada o ha sido eliminada.</p>
           <button
-            style={{
-              backgroundColor: '#00bfa5',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 6,
-              padding: '10px 20px',
-              cursor: 'pointer',
-              fontWeight: 'bold',
-              marginTop: 20,
-              transition: 'background-color 0.3s ease',
-            }}
+            style={btnStyle}
             onClick={() => navigate(-1)}
             onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#009e88')}
             onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#00bfa5')}
@@ -65,53 +71,21 @@ function VerFichaIndividual() {
       </div>
 
       <div className="view-body">
-        <div className="view-field">
-          <strong>Dirección:</strong> {ficha.direccion}
-        </div>
-        <div className="view-field">
-          <strong>Centro pref.:</strong> {ficha.centro}
-        </div>
-        <div className="view-field">
-          <strong>Previsión:</strong> {ficha.prevision}
-        </div>
-        <div className="view-field">
-          <strong>Alergias:</strong> {ficha.alergias || '—'}
-        </div>
-        <div className="view-field">
-          <strong>Enfermedades:</strong> {ficha.enfermedades || '—'}
-        </div>
-        <div className="view-field">
-          <strong>Medicamentos:</strong> {ficha.medicamentos || '—'}
-        </div>
+        <div className="view-field"><strong>Dirección:</strong> {ficha.direccion}</div>
+        <div className="view-field"><strong>Centro pref.:</strong> {ficha.centro}</div>
+        <div className="view-field"><strong>Previsión:</strong> {ficha.prevision}</div>
+        <div className="view-field"><strong>Alergias:</strong> {ficha.alergias || '—'}</div>
+        <div className="view-field"><strong>Enfermedades:</strong> {ficha.enfermedades || '—'}</div>
+        <div className="view-field"><strong>Medicamentos:</strong> {ficha.medicamentos || '—'}</div>
 
         <h4 className="section-title">Contacto de Emergencia</h4>
-
-        <div className="view-field">
-          <strong>Nombre:</strong> {ficha.contactoNombre || '—'}
-        </div>
-        <div className="view-field">
-          <strong>Parentesco:</strong> {ficha.contactoParentesco || '—'}
-        </div>
-        <div className="view-field">
-          <strong>Número:</strong> {ficha.contactoNumero || '—'}
-        </div>
-
-        <div className="view-field">
-          <strong>Observaciones:</strong> {ficha.observaciones || '—'}
-        </div>
+        <div className="view-field"><strong>Nombre:</strong> {ficha.contactoNombre || '—'}</div>
+        <div className="view-field"><strong>Parentesco:</strong> {ficha.contactoParentesco || '—'}</div>
+        <div className="view-field"><strong>Número:</strong> {ficha.contactoNumero || '—'}</div>
+        <div className="view-field"><strong>Observaciones:</strong> {ficha.observaciones || '—'}</div>
 
         <button
-          style={{
-            backgroundColor: '#00bfa5',
-            color: '#fff',
-            border: 'none',
-            borderRadius: 6,
-            padding: '10px 20px',
-            cursor: 'pointer',
-            fontWeight: 'bold',
-            marginTop: 20,
-            transition: 'background-color 0.3s ease',
-          }}
+          style={btnStyle}
           onClick={() => navigate(-1)}
           onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#009e88')}
           onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#00bfa5')}
@@ -122,5 +96,17 @@ function VerFichaIndividual() {
     </div>
   );
 }
+
+const btnStyle = {
+  backgroundColor: '#00bfa5',
+  color: '#fff',
+  border: 'none',
+  borderRadius: 6,
+  padding: '10px 20px',
+  cursor: 'pointer',
+  fontWeight: 'bold',
+  marginTop: 20,
+  transition: 'background-color 0.3s ease',
+};
 
 export default VerFichaIndividual;
