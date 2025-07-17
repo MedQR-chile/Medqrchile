@@ -62,10 +62,10 @@ function AdminPanel() {
   const generateQRConLogo = async (fichaId) => {
     try {
       const canvas = document.createElement('canvas');
-      await QRCode.toCanvas(canvas, `http://localhost:3000/ver-ficha-individual?uid=${fichaId}`, {
-        errorCorrectionLevel: 'H',
+      await QRCode.toCanvas(canvas, `https://medqrchile.cl/ver-ficha-individual?uid=${fichaId}`, {
+       errorCorrectionLevel: 'H',
         width: 300,
-      });
+       });
       const ctx = canvas.getContext('2d');
       const logo = new Image();
       logo.src = '/Logo.png';
