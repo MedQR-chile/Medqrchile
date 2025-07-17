@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';  // Ajusta si tu archivo firebase.js está en otra carpeta
-import QRCode from 'qrcode';
+import { toCanvas } from 'qrcode';  // Importamos solo toCanvas para generar QR
 import { useAuth } from '../AuthContext';  // Ajusta según donde tengas AuthContext.js
 import { useNavigate } from 'react-router-dom';
 
@@ -62,10 +62,10 @@ function AdminPanel() {
   const generateQRConLogo = async (fichaId) => {
     try {
       const canvas = document.createElement('canvas');
-      await QRCode.toCanvas(canvas, `https://medqrchile.cl/ver-ficha-individual/${fichaId}`, {
-       errorCorrectionLevel: 'H',
+      await toCanvas(canvas, `https://medqrchile.cl/ver-ficha-individual/${fichaId}`, {
+        errorCorrectionLevel: 'H',
         width: 300,
-       });
+      });
       const ctx = canvas.getContext('2d');
       const logo = new Image();
       logo.src = '/Logo.png';
@@ -197,5 +197,6 @@ function AdminPanel() {
 }
 
 export default AdminPanel;
+
 
     
