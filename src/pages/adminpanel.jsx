@@ -1,9 +1,9 @@
 // src/pages/adminpanel.jsx
 import React, { useEffect, useState } from 'react';
 import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
-import { db } from '../firebase';               // Ajusta si tu ruta es diferente
+import { db } from './firebase';               // Ajusta si tu ruta es diferente
 import QRCode from 'qrcode';
-import { useAuth } from '../AuthContext';       // Ajusta si tu ruta es diferente
+import { useAuth } from './AuthContext';       // Ajusta si tu ruta es diferente
 import { useNavigate } from 'react-router-dom';
 
 function AdminPanel() {
