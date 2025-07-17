@@ -1,10 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
-import { db } from './firebase.js';
-import QRCode from 'qrcode';
-import { useAuth } from './AuthContext';
-import { useNavigate } from 'react-router-dom';
-
+// ... imports iguales ...
 function AdminPanel() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -43,7 +37,6 @@ function AdminPanel() {
     }
   }, [user]);
 
-  // Color principal del botón y hover más oscuro
   const buttonColor = '#00bfa5';
   const buttonHoverColor = '#009e88';
 
@@ -63,12 +56,14 @@ function AdminPanel() {
     try {
       const canvas = document.createElement('canvas');
       await QRCode.toCanvas(canvas, `https://medqrchile.cl/ver-ficha-individual?uid=${fichaId}`, {
-       errorCorrectionLevel: 'H',
+        errorCorrectionLevel: 'H',
         width: 300,
-       });
+      });
       const ctx = canvas.getContext('2d');
       const logo = new Image();
-      logo.src = '/Logo.png';
+      logo.crossOrigin = "anonymous"; // importante para evitar errores de CORS
+      logo.src = '/logo.png'; // debe estar en /public/logo.png (todo en minúsculas)
+
       logo.onload = () => {
         const size = 60;
         const x = (canvas.width - size) / 2;
@@ -79,9 +74,12 @@ function AdminPanel() {
         link.href = canvas.toDataURL();
         link.click();
       };
+
       logo.onerror = () => {
+        console.error('No se pudo cargar el logo desde /logo.png');
         alert('No se pudo cargar el logo desde /logo.png');
       };
+
     } catch (e) {
       console.error('Error generando QR con logo:', e);
       alert('Error al generar el QR');
@@ -102,9 +100,8 @@ function AdminPanel() {
     }
   };
 
-  if (cargando) {
-    return <p style={{ padding: 20 }}>Cargando...</p>;
-  }
+  if (cargando) return <p style={{ padding: 20 }}>Cargando...</p>;
+
   if (user?.email !== correoAdmin) {
     return (
       <p style={{ padding: 20, color: 'red' }}>
@@ -119,13 +116,11 @@ function AdminPanel() {
       {fichas.length === 0 ? (
         <p>No hay fichas registradas.</p>
       ) : (
-        <table
-          style={{
-            width: '100%',
-            borderCollapse: 'collapse',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-          }}
-        >
+        <table style={{
+          width: '100%',
+          borderCollapse: 'collapse',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        }}>
           <thead style={{ backgroundColor: buttonColor, color: 'white' }}>
             <tr>
               <th style={{ padding: '12px 15px', textAlign: 'left' }}>Nombre</th>
@@ -136,12 +131,10 @@ function AdminPanel() {
           </thead>
           <tbody>
             {fichas.map((f) => (
-              <tr
-                key={f.id}
-                style={{
-                  borderBottom: '1px solid #ddd',
-                  transition: 'background-color 0.2s',
-                }}
+              <tr key={f.id} style={{
+                borderBottom: '1px solid #ddd',
+                transition: 'background-color 0.2s',
+              }}
                 onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#f5f5f5')}
                 onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
               >
@@ -177,7 +170,6 @@ function AdminPanel() {
         </table>
       )}
 
-      {/* Botón Volver al final */}
       <button
         onClick={() => navigate(-1)}
         style={{
