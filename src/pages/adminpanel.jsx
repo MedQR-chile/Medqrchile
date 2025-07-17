@@ -1,9 +1,9 @@
 // src/pages/adminpanel.jsx
 import React, { useEffect, useState } from 'react';
 import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
-import { db } from './firebase';               // Ajusta si tu ruta es diferente
+import { db } from '../firebase';  // Ajusta si tu archivo firebase.js está en otra carpeta
 import QRCode from 'qrcode';
-import { useAuth } from './AuthContext';       // Ajusta si tu ruta es diferente
+import { useAuth } from '../AuthContext';  // Ajusta según donde tengas AuthContext.js
 import { useNavigate } from 'react-router-dom';
 
 function AdminPanel() {
@@ -44,7 +44,6 @@ function AdminPanel() {
     }
   }, [user]);
 
-  // Colores para botones
   const buttonColor = '#00bfa5';
   const buttonHoverColor = '#009e88';
 
@@ -64,12 +63,12 @@ function AdminPanel() {
     try {
       const canvas = document.createElement('canvas');
       await QRCode.toCanvas(canvas, `https://medqrchile.cl/ver-ficha-individual/${fichaId}`, {
-        errorCorrectionLevel: 'H',
+       errorCorrectionLevel: 'H',
         width: 300,
-      });
+       });
       const ctx = canvas.getContext('2d');
       const logo = new Image();
-      logo.src = '/Logo.png';  // Asegúrate que el logo está en public/Logo.png y con mayúscula exacta
+      logo.src = '/Logo.png';
       logo.onload = () => {
         const size = 60;
         const x = (canvas.width - size) / 2;
@@ -198,3 +197,5 @@ function AdminPanel() {
 }
 
 export default AdminPanel;
+
+    
