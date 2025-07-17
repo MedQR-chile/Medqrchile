@@ -68,7 +68,7 @@ function AdminPanel() {
       });
       const ctx = canvas.getContext('2d');
       const logo = new Image();
-      logo.src = '/logo.png';
+      logo.src = '/Logo.png';
       logo.onload = () => {
         const size = 60;
         const x = (canvas.width - size) / 2;
