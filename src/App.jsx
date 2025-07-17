@@ -71,13 +71,11 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* RUTA PÚBLICA: Ver ficha individual sin login */}
         <Route
-          path="/ver-ficha-individual"
-          element={
-            <ProtectedRoute>
-              <VerFichaIndividual />
-            </ProtectedRoute>
-          }
+          path="/ver-ficha-individual/:id"
+          element={<VerFichaIndividual />}
         />
 
         {/* Fichas Familiares */}
@@ -97,13 +95,11 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* RUTA PÚBLICA: Ver ficha familiar sin login */}
         <Route
           path="/ver-ficha-familiar/:id"
-          element={
-            <ProtectedRoute>
-              <VerFichaFamiliar />
-            </ProtectedRoute>
-          }
+          element={<VerFichaFamiliar />}
         />
         <Route
           path="/editar-ficha-familiar/:id"
@@ -131,13 +127,11 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* RUTA PÚBLICA: Ver ficha institucional sin login */}
         <Route
           path="/ver-ficha-institucional/:id"
-          element={
-            <ProtectedRoute>
-              <VerFichaInstitucional />
-            </ProtectedRoute>
-          }
+          element={<VerFichaInstitucional />}
         />
         <Route
           path="/editar-ficha-institucional/:id"
@@ -163,3 +157,4 @@ function App() {
 }
 
 export default App;
+
