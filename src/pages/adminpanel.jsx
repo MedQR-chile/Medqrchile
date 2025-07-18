@@ -4,7 +4,7 @@ import { db } from './firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import QRCode from 'qrcode';
 import { useNavigate } from 'react-router-dom';
-import logo from './assets/Logo.png';
+import logo from '../assets/Logo.png';
 
 const PanelAdm = () => {
   const { user } = useAuth();
