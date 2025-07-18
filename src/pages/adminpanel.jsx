@@ -4,6 +4,7 @@ import { db } from './firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import QRCode from 'qrcode';
 import { useNavigate } from 'react-router-dom';
+import { QrCodeIcon } from 'lucide-react';
 
 const PanelAdm = () => {
   const { user } = useAuth();
@@ -90,28 +91,30 @@ const PanelAdm = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-blue-100 p-8">
-      <h1 className="text-4xl font-bold text-center text-blue-800 mb-10 drop-shadow-md">
-        Panel de Administrador
-      </h1>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white p-6">
+      <h1 className="text-4xl font-bold text-center text-blue-700 mb-8">Panel Administrador</h1>
 
       {fichas.length === 0 ? (
-        <p className="text-center text-gray-500 text-lg">Cargando fichas...</p>
+        <p className="text-center text-gray-600 text-lg">Cargando fichas...</p>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {fichas.map((ficha) => (
             <div
               key={ficha.id}
-              className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition duration-300"
+              className="bg-white border border-gray-200 rounded-2xl shadow hover:shadow-md transition p-5"
             >
-              <p className="font-semibold text-xl text-gray-800 mb-2">{ficha.nombre || 'Sin nombre'}</p>
-              <p className="text-sm text-gray-600 mb-4 capitalize">
-                Tipo: {ficha.coleccion.replace('fichas_', '')}
+              <h2 className="text-xl font-semibold text-gray-800 mb-2">{ficha.nombre || 'Sin nombre'}</h2>
+              <p className="text-sm text-gray-500 mb-4">
+                Tipo de ficha:{' '}
+                <span className="capitalize text-blue-600 font-medium">
+                  {ficha.coleccion.replace('fichas_', '')}
+                </span>
               </p>
               <button
                 onClick={() => generateQRConLogo(ficha.id)}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg shadow-md transition duration-200"
+                className="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-xl flex items-center justify-center gap-2 hover:bg-blue-700 transition"
               >
+                <QrCodeIcon className="w-5 h-5" />
                 Generar QR
               </button>
             </div>
