@@ -1,146 +1,121 @@
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
-import { db } from './firebase';
-import QRCode from 'qrcode';
 import { useAuth } from './AuthContext';
+import { db } from './firebase';
+import { collection, getDocs } from 'firebase/firestore';
+import QRCode from 'qrcode';
 import { useNavigate } from 'react-router-dom';
-import logo from '../assets/Logo.png'; // Ajusta el path según la ubicación exacta
+import Logo from './assets/Logo.png'; // Asegúrate que está en src/assets/Logo.png
 
-function PanelAdm() {
-  const [fichasIndividuales, setFichasIndividuales] = useState([]);
-  const [fichasFamiliares, setFichasFamiliares] = useState([]);
-  const [fichasInstitucionales, setFichasInstitucionales] = useState([]);
-  const [descargadas, setDescargadas] = useState({});
+const PanelAdm = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
+  const [fichas, setFichas] = useState([]);
+
+  const esAdmin = user?.email === 'medqrchile@gmail.com';
 
   useEffect(() => {
-    const obtenerFichas = async () => {
-      const fichasIndiv = await getDocs(collection(db, 'fichas_individuales'));
-      const fichasFam = await getDocs(collection(db, 'fichas_familiares'));
-      const fichasInst = await getDocs(collection(db, 'fichas_institucionales'));
+    if (!esAdmin) {
+      navigate('/');
+      return;
+    }
 
-      setFichasIndividuales(fichasIndiv.docs.map(doc => ({ id: doc.id, ...doc.data(), tipo: 'Individual' })));
-      setFichasFamiliares(fichasFam.docs.map(doc => ({ id: doc.id, ...doc.data(), tipo: 'Familiar' })));
-      setFichasInstitucionales(fichasInst.docs.map(doc => ({ id: doc.id, ...doc.data(), tipo: 'Institucional' })));
+    const obtenerFichas = async () => {
+      try {
+        const colecciones = ['fichas_individuales', 'fichas_familiares', 'fichas_institucionales'];
+        const todasFichas = [];
+
+        for (const nombreColeccion of colecciones) {
+          const snapshot = await getDocs(collection(db, nombreColeccion));
+          snapshot.forEach(doc => {
+            todasFichas.push({
+              id: doc.id,
+              ...doc.data(),
+              coleccion: nombreColeccion,
+            });
+          });
+        }
+
+        setFichas(todasFichas);
+      } catch (error) {
+        console.error('Error obteniendo fichas:', error);
+      }
     };
 
     obtenerFichas();
-  }, []);
+  }, [esAdmin, navigate]);
 
-  const marcarDescargada = (id) => {
-    setDescargadas(prev => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
+  const generateQRConLogo = async (fichaId) => {
+    try {
+      const ficha = fichas.find(f => f.id === fichaId);
+
+      let tipoRuta = '';
+      if (ficha.coleccion === 'fichas_individuales') {
+        tipoRuta = 'ver-ficha-individual';
+      } else if (ficha.coleccion === 'fichas_familiares') {
+        tipoRuta = 'ver-ficha-familiar';
+      } else if (ficha.coleccion === 'fichas_institucionales') {
+        tipoRuta = 'ver-ficha-institucional';
+      }
+
+      const urlQR = `https://medqrchile.cl/${tipoRuta}/${ficha.id}`;
+
+      const canvas = document.createElement('canvas');
+      await QRCode.toCanvas(canvas, urlQR, {
+        errorCorrectionLevel: 'H',
+        width: 300,
+      });
+
+      const ctx = canvas.getContext('2d');
+      const logo = new Image();
+      logo.src = Logo;
+      logo.onload = () => {
+        const size = 60;
+        const x = (canvas.width - size) / 2;
+        const y = (canvas.height - size) / 2;
+        ctx.drawImage(logo, x, y, size, size);
+
+        const link = document.createElement('a');
+        link.download = `qr_medqr_${ficha.id}.png`;
+        link.href = canvas.toDataURL();
+        link.click();
+      };
+
+      logo.onerror = () => {
+        alert('No se pudo cargar el logo desde src/assets/Logo.png');
+      };
+    } catch (e) {
+      console.error('Error generando QR con logo:', e);
+      alert('Error al generar el QR');
+    }
   };
-
-  const volverAtras = () => {
-    navigate('/');
-  };
-
-  const renderTabla = (titulo, fichas) => (
-    <>
-      <h3 style={{ color: '#00bfa5', marginTop: '2rem' }}>{titulo}</h3>
-      <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '2rem' }}>
-        <thead>
-          <tr style={{ backgroundColor: '#00bfa5', color: 'white' }}>
-            <th style={styles.th}>Nombre</th>
-            <th style={styles.th}>Tipo</th>
-            <th style={styles.th}>Ver QR</th>
-            <th style={styles.th}>¿Descargada?</th>
-          </tr>
-        </thead>
-        <tbody>
-          {fichas.map((ficha) => (
-            <tr key={ficha.id} style={styles.tr}>
-              <td style={styles.td}>{ficha.nombre}</td>
-              <td style={styles.td}>{ficha.tipo}</td>
-              <td style={styles.td}>
-                <a
-                  href={`/qr/${ficha.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={styles.botonVer}
-                >
-                  Ver QR
-                </a>
-              </td>
-              <td style={styles.td}>
-                <button
-                  onClick={() => marcarDescargada(ficha.id)}
-                  style={{
-                    ...styles.botonDescargada,
-                    backgroundColor: descargadas[ficha.id] ? '#00bfa5' : '#ccc',
-                    color: descargadas[ficha.id] ? 'white' : '#333',
-                  }}
-                >
-                  {descargadas[ficha.id] ? 'Sí' : 'No'}
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </>
-  );
 
   return (
-    <div style={{ padding: '2rem', fontFamily: 'Arial, sans-serif' }}>
-      <img src={logo} alt="Logo" style={{ width: '150px', marginBottom: '1rem' }} />
-      <h2 style={{ color: '#00bfa5', marginBottom: '1rem' }}>Panel de Administración</h2>
+    <div className="min-h-screen p-6 bg-gray-50">
+      <h1 className="text-3xl font-bold text-center mb-6">Panel Administrador</h1>
 
-      <button onClick={volverAtras} style={styles.botonVolver}>
-        ← Volver atrás
-      </button>
-
-      <div style={{ overflowX: 'auto' }}>
-        {renderTabla('Fichas Individuales', fichasIndividuales)}
-        {renderTabla('Fichas Familiares', fichasFamiliares)}
-        {renderTabla('Fichas Institucionales', fichasInstitucionales)}
-      </div>
+      {fichas.length === 0 ? (
+        <p className="text-center text-gray-600">Cargando fichas...</p>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {fichas.map((ficha) => (
+            <div key={ficha.id} className="bg-white shadow rounded-xl p-4 border border-gray-200">
+              <p className="font-semibold text-lg mb-2">{ficha.nombre || 'Sin nombre'}</p>
+              <p className="text-sm text-gray-600 mb-2">
+                Tipo: {ficha.coleccion.replace('fichas_', '')}
+              </p>
+              <button
+                onClick={() => generateQRConLogo(ficha.id)}
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+              >
+                Generar y Descargar QR
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
-}
-
-const styles = {
-  th: {
-    padding: '10px',
-    textAlign: 'left',
-    borderBottom: '2px solid #ccc',
-    fontSize: '16px',
-  },
-  td: {
-    padding: '10px',
-    borderBottom: '1px solid #eee',
-    fontSize: '15px',
-  },
-  tr: {
-    backgroundColor: '#f9f9f9',
-  },
-  botonVolver: {
-    marginBottom: '1.5rem',
-    padding: '10px 20px',
-    backgroundColor: '#00bfa5',
-    color: 'white',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-  },
-  botonVer: {
-    backgroundColor: '#00bfa5',
-    color: 'white',
-    padding: '6px 12px',
-    borderRadius: '5px',
-    textDecoration: 'none',
-    fontSize: '14px',
-  },
-  botonDescargada: {
-    border: 'none',
-    padding: '6px 12px',
-    borderRadius: '5px',
-    cursor: 'pointer',
-    fontSize: '14px',
-  },
 };
 
 export default PanelAdm;
+
