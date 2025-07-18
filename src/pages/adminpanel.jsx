@@ -4,7 +4,7 @@ import { db } from './firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import QRCode from 'qrcode';
 import { useNavigate } from 'react-router-dom';
-import logo from '../assets/Logo.png'; // <- ESTA IMPORTACIÓN ESTÁ BIEN
+import logoImage from '../assets/Logo.png';
 
 const PanelAdm = () => {
   const { user } = useAuth();
@@ -47,13 +47,9 @@ const PanelAdm = () => {
   const generateQRConLogo = async (ficha) => {
     try {
       let tipoRuta = '';
-      if (ficha.coleccion === 'fichas_individuales') {
-        tipoRuta = 'ver-ficha-individual';
-      } else if (ficha.coleccion === 'fichas_familiares') {
-        tipoRuta = 'ver-ficha-familiar';
-      } else if (ficha.coleccion === 'fichas_institucionales') {
-        tipoRuta = 'ver-ficha-institucional';
-      }
+      if (ficha.coleccion === 'fichas_individuales') tipoRuta = 'ver-ficha-individual';
+      if (ficha.coleccion === 'fichas_familiares') tipoRuta = 'ver-ficha-familiar';
+      if (ficha.coleccion === 'fichas_institucionales') tipoRuta = 'ver-ficha-institucional';
 
       const urlQR = `https://medqrchile.cl/${tipoRuta}/${ficha.id}`;
       const canvas = document.createElement('canvas');
@@ -63,14 +59,14 @@ const PanelAdm = () => {
       });
 
       const ctx = canvas.getContext('2d');
-      const image = new Image();
-      image.src = logo; // <- ✅ Aquí está el logo correcto
+      const logo = new Image();
+      logo.src = logoImage;
 
-      image.onload = () => {
+      logo.onload = () => {
         const size = 60;
         const x = (canvas.width - size) / 2;
         const y = (canvas.height - size) / 2;
-        ctx.drawImage(image, x, y, size, size);
+        ctx.drawImage(logo, x, y, size, size);
 
         const link = document.createElement('a');
         link.download = `qr_medqr_${ficha.id}.png`;
@@ -78,7 +74,7 @@ const PanelAdm = () => {
         link.click();
       };
 
-      image.onerror = () => {
+      logo.onerror = () => {
         alert('No se pudo cargar el logo');
       };
     } catch (e) {
@@ -88,11 +84,11 @@ const PanelAdm = () => {
   };
 
   return (
-    <div className="min-h-screen p-8 bg-gray-100">
+    <div className="min-h-screen p-6 sm:p-10 bg-gray-100">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl font-bold text-center text-[#00bfa5] mb-8">Panel de Administrador</h1>
+        <h1 className="text-4xl font-bold text-center text-[#00bfa5] mb-10">Panel de Administrador</h1>
 
-        <div className="flex justify-end mb-4">
+        <div className="flex justify-end mb-6">
           <button
             onClick={() => navigate('/')}
             className="bg-gray-500 text-white px-4 py-2 rounded-xl hover:bg-gray-700 transition"
@@ -102,24 +98,26 @@ const PanelAdm = () => {
         </div>
 
         {fichas.length === 0 ? (
-          <p className="text-center text-gray-500">Cargando fichas...</p>
+          <p className="text-center text-gray-500 text-lg">Cargando fichas...</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {fichas.map((ficha) => (
               <div
                 key={ficha.id}
-                className="bg-white border border-gray-200 shadow-lg rounded-2xl p-6 flex flex-col justify-between"
+                className="bg-white border border-gray-200 shadow-md rounded-2xl p-6 hover:shadow-xl transition"
               >
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-800 mb-2">{ficha.nombre || 'Sin nombre'}</h2>
-                  <p className="text-gray-600 text-sm mb-4 capitalize">
+                <div className="mb-4">
+                  <h2 className="text-xl font-semibold text-gray-800 mb-1">
+                    {ficha.nombre || 'Sin nombre'}
+                  </h2>
+                  <p className="text-gray-600 text-sm capitalize">
                     Tipo: {ficha.coleccion.replace('fichas_', '').replace('_', ' ')}
                   </p>
                 </div>
 
                 <button
                   onClick={() => generateQRConLogo(ficha)}
-                  className="mt-auto bg-[#00bfa5] text-white px-4 py-2 rounded-xl hover:bg-[#009e88] transition"
+                  className="w-full bg-[#00bfa5] text-white font-medium py-2 rounded-xl hover:bg-[#009e88] transition"
                 >
                   Generar y Descargar QR
                 </button>
@@ -133,4 +131,5 @@ const PanelAdm = () => {
 };
 
 export default PanelAdm;
+
 
