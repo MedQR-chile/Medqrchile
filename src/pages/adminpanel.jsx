@@ -9,78 +9,105 @@ import { useNavigate } from 'react-router-dom';
 function AdminPanel() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [fichas, setFichas] = useState([]);
-  const [qrGenerado, setQrGenerado] = useState(null);
-  const [tipoFicha, setTipoFicha] = useState('');
+
+  const [fichasIndividuales, setFichasIndividuales] = useState([]);
+  const [fichasFamiliares, setFichasFamiliares] = useState([]);
+  const [fichasInstitucionales, setFichasInstitucionales] = useState([]);
+  const [urlQR, setUrlQR] = useState('');
+  const [qrKey, setQrKey] = useState('');
+  const qrRef = useRef();
+
+  const adminEmail = 'medqrchile@gmail.com';
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (!user || user.email !== 'medqrchile@gmail.com') {
-        navigate('/');
-        return;
-      }
+    if (!user || user.email !== adminEmail) {
+      navigate('/');
+    } else {
+      obtenerFichas();
+    }
+  }, [user]);
 
-      const colecciones = [
-        { nombre: 'fichas_individuales', tipo: 'individual' },
-        { nombre: 'fichas_familiares', tipo: 'familiar' },
-        { nombre: 'fichas_institucionales', tipo: 'institucional' }
-      ];
+  const obtenerFichas = async () => {
+    try {
+      const [snapIndividual, snapFamiliar, snapInstitucional] = await Promise.all([
+        getDocs(collection(db, 'fichas_individuales')),
+        getDocs(collection(db, 'fichas_familiares')),
+        getDocs(collection(db, 'fichas_institucionales')),
+      ]);
 
-      const fichasTotales = [];
-
-      for (const coleccion of colecciones) {
-        const querySnapshot = await getDocs(collection(db, coleccion.nombre));
-        querySnapshot.forEach(docSnap => {
-          fichasTotales.push({
-            id: docSnap.id,
-            ...docSnap.data(),
-            tipo: coleccion.tipo,
-            coleccion: coleccion.nombre
-          });
-        });
-      }
-
-      setFichas(fichasTotales);
-    };
-
-    fetchData();
-  }, [user, navigate]);
-
-  const generarQR = async (ficha) => {
-    setQrGenerado({
-      id: ficha.id,
-      tipo: ficha.tipo,
-      url: `https://medqrchile.cl/ficha/${ficha.id}?tipo=${ficha.tipo}`
-    });
-
-    // Guardar que fue descargado
-    const fichaRef = doc(db, ficha.coleccion, ficha.id);
-    await updateDoc(fichaRef, {
-      descargado: true
-    });
+      setFichasIndividuales(snapIndividual.docs.map(doc => ({ id: doc.id, ...doc.data(), tipo: 'fichas_individuales' })));
+      setFichasFamiliares(snapFamiliar.docs.map(doc => ({ id: doc.id, ...doc.data(), tipo: 'fichas_familiares' })));
+      setFichasInstitucionales(snapInstitucional.docs.map(doc => ({ id: doc.id, ...doc.data(), tipo: 'fichas_institucionales' })));
+    } catch (error) {
+      console.error('Error al obtener fichas:', error);
+    }
   };
 
-  return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-4">Panel de Administrador</h1>
-      {fichas.map((ficha, index) => (
-        <div key={index} className="border rounded p-4 mb-4 shadow">
-          <p><strong>Nombre:</strong> {ficha.nombre}</p>
-          <p><strong>Tipo:</strong> {ficha.tipo}</p>
-          <button
-            onClick={() => generarQR(ficha)}
-            className="bg-blue-600 text-white px-4 py-2 mt-2 rounded"
-          >
-            Generar QR
-          </button>
-        </div>
-      ))}
+  const generarQR = (id, tipo) => {
+    const url = `${window.location.origin}/verpublica/${id}?tipo=${tipo}`;
+    setUrlQR(url);
+    setQrKey(`${tipo}-${id}`);
+  };
 
-      {qrGenerado && (
-        <div className="mt-6 border-t pt-4">
-          <h2 className="text-xl font-semibold mb-2">Código QR generado</h2>
-          <QRCode value={qrGenerado.url} size={256} />
-          <p className="mt-2">URL: {qrGenerado.url}</p>
+  const descargarQR = () => {
+    if (!qrRef.current) return;
+    htmlToImage.toPng(qrRef.current)
+      .then((dataUrl) => {
+        const link = document.createElement('a');
+        link.download = 'codigo_qr.png';
+        link.href = dataUrl;
+        link.click();
+      })
+      .catch((error) => {
+        console.error('Error al descargar el QR:', error);
+      });
+  };
+
+  const renderLista = (titulo, fichas) => (
+    <div className="mb-8">
+      <h2 className="text-xl font-bold mb-2">{titulo}</h2>
+      {fichas.length === 0 ? (
+        <p>No hay fichas registradas.</p>
+      ) : (
+        <ul className="space-y-2">
+          {fichas.map(ficha => (
+            <li key={ficha.id} className="border p-2 rounded flex justify-between items-center">
+              <span>{ficha.nombre || 'Sin nombre'}</span>
+              <button
+                onClick={() => generarQR(ficha.id, ficha.tipo)}
+                className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+              >
+                Generar QR
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="p-6 max-w-3xl mx-auto">
+      <h1 className="text-3xl font-bold mb-6">Panel de Administrador</h1>
+
+      {renderLista('Fichas Individuales', fichasIndividuales)}
+      {renderLista('Fichas Familiares', fichasFamiliares)}
+      {renderLista('Fichas Institucionales', fichasInstitucionales)}
+
+      {urlQR && (
+        <div className="mt-10 text-center">
+          <p className="mb-2 font-semibold">Código QR generado:</p>
+          <div ref={qrRef} className="inline-block p-4 bg-white">
+            <QRCodeCanvas value={urlQR} size={200} key={qrKey} />
+          </div>
+          <div className="mt-4">
+            <button
+              onClick={descargarQR}
+              className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+            >
+              Descargar QR
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -88,6 +115,3 @@ function AdminPanel() {
 }
 
 export default AdminPanel;
-
-
-    
