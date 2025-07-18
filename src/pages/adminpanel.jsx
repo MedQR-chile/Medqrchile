@@ -4,6 +4,7 @@ import { db } from './firebase';
 import QRCode from 'qrcode';
 import { useAuth } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
+import logoImage from './logo.png'; // asegúrate de tener el logo en tu carpeta src
 
 function PanelAdm() {
   const [fichas, setFichas] = useState([]);
@@ -41,7 +42,6 @@ function PanelAdm() {
     navigate('/');
   };
 
-  // Función para obtener URL según tipo ficha
   const obtenerUrlFicha = (ficha) => {
     const baseUrl = 'https://medqrchile.cl';
     switch (ficha.coleccion) {
@@ -54,6 +54,37 @@ function PanelAdm() {
       default:
         return `${baseUrl}/ver-ficha-individual/${ficha.id}`;
     }
+  };
+
+  const descargarQrConLogo = async (ficha) => {
+    const url = obtenerUrlFicha(ficha);
+    const canvas = document.createElement('canvas');
+    canvas.width = 500;
+    canvas.height = 500;
+
+    await QRCode.toCanvas(canvas, url, {
+      width: 500,
+      margin: 2,
+      color: {
+        dark: '#000',
+        light: '#fff',
+      },
+    });
+
+    const ctx = canvas.getContext('2d');
+    const logo = new Image();
+    logo.src = logoImage;
+    logo.onload = () => {
+      const size = 100;
+      const x = (canvas.width - size) / 2;
+      const y = (canvas.height - size) / 2;
+      ctx.drawImage(logo, x, y, size, size);
+
+      const link = document.createElement('a');
+      link.href = canvas.toDataURL('image/png');
+      link.download = `${ficha.nombre || 'qr'}.png`;
+      link.click();
+    };
   };
 
   return (
@@ -80,6 +111,7 @@ function PanelAdm() {
           <thead>
             <tr style={{ backgroundColor: '#00bfa5', color: 'white' }}>
               <th style={styles.th}>Nombre</th>
+              <th style={styles.th}>Ver QR</th>
               <th style={styles.th}>Descargar QR</th>
               <th style={styles.th}>¿Descargada?</th>
             </tr>
@@ -93,17 +125,15 @@ function PanelAdm() {
                     href={obtenerUrlFicha(ficha)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{
-                      backgroundColor: '#00bfa5',
-                      color: 'white',
-                      padding: '6px 12px',
-                      borderRadius: '5px',
-                      textDecoration: 'none',
-                      fontSize: '14px',
-                    }}
+                    style={styles.boton}
                   >
                     Ver QR
                   </a>
+                </td>
+                <td style={styles.td}>
+                  <button onClick={() => descargarQrConLogo(ficha)} style={styles.boton}>
+                    Descargar QR
+                  </button>
                 </td>
                 <td style={styles.td}>
                   <button
@@ -144,6 +174,16 @@ const styles = {
   },
   tr: {
     backgroundColor: '#f9f9f9',
+  },
+  boton: {
+    backgroundColor: '#00bfa5',
+    color: 'white',
+    padding: '6px 12px',
+    borderRadius: '5px',
+    border: 'none',
+    cursor: 'pointer',
+    fontSize: '14px',
+    textDecoration: 'none',
   },
 };
 
