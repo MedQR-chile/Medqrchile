@@ -4,7 +4,7 @@ import { db } from './firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import QRCode from 'qrcode';
 import { useNavigate } from 'react-router-dom';
-import logoImage from '../assets/Logo.png'; // Ruta correcta
+import logoImage from './assets/Logo.png'; // Asegúrate que esté ahí
 
 const PanelAdm = () => {
   const { user } = useAuth();
@@ -56,7 +56,6 @@ const PanelAdm = () => {
       }
 
       const urlQR = `https://medqrchile.cl/${tipoRuta}/${ficha.id}`;
-
       const canvas = document.createElement('canvas');
       await QRCode.toCanvas(canvas, urlQR, {
         errorCorrectionLevel: 'H',
@@ -89,32 +88,48 @@ const PanelAdm = () => {
   };
 
   return (
-    <div className="min-h-screen p-6 bg-gray-50">
-      <h1 className="text-3xl font-bold text-center mb-6">Panel Administrador</h1>
+    <div className="min-h-screen p-8 bg-gray-100">
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-4xl font-bold text-center text-[#00bfa5] mb-8">Panel de Administrador</h1>
 
-      {fichas.length === 0 ? (
-        <p className="text-center text-gray-600">Cargando fichas...</p>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {fichas.map((ficha) => (
-            <div key={ficha.id} className="bg-white shadow rounded-xl p-4 border border-gray-200">
-              <p className="font-semibold text-lg mb-2">{ficha.nombre || 'Sin nombre'}</p>
-              <p className="text-sm text-gray-600 mb-4 capitalize">
-                Tipo: {ficha.coleccion.replace('fichas_', '').replace('_', ' ')}
-              </p>
-              <button
-                onClick={() => generateQRConLogo(ficha)}
-                className="bg-teal-500 text-white px-4 py-2 rounded hover:bg-teal-600 transition"
-              >
-                Generar y Descargar QR
-              </button>
-            </div>
-          ))}
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={() => navigate('/')}
+            className="bg-gray-500 text-white px-4 py-2 rounded-xl hover:bg-gray-700 transition"
+          >
+            ← Volver atrás
+          </button>
         </div>
-      )}
+
+        {fichas.length === 0 ? (
+          <p className="text-center text-gray-500">Cargando fichas...</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {fichas.map((ficha) => (
+              <div
+                key={ficha.id}
+                className="bg-white border border-gray-200 shadow-lg rounded-2xl p-6 flex flex-col justify-between"
+              >
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-800 mb-2">{ficha.nombre || 'Sin nombre'}</h2>
+                  <p className="text-gray-600 text-sm mb-4 capitalize">
+                    Tipo: {ficha.coleccion.replace('fichas_', '').replace('_', ' ')}
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => generateQRConLogo(ficha)}
+                  className="mt-auto bg-[#00bfa5] text-white px-4 py-2 rounded-xl hover:bg-[#009e88] transition"
+                >
+                  Generar y Descargar QR
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
 
 export default PanelAdm;
-
