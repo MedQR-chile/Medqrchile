@@ -83,53 +83,58 @@ const PanelAdm = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen p-6 sm:p-10 bg-gray-100">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl font-bold text-center text-[#00bfa5] mb-10">Panel de Administrador</h1>
+ return (
+  <div className="min-h-screen p-8 bg-gray-100">
+    <div className="max-w-6xl mx-auto">
+      <h1 className="text-4xl font-bold text-center text-[#00bfa5] mb-8">Panel de Administrador</h1>
 
-        <div className="flex justify-end mb-6">
-          <button
-            onClick={() => navigate('/')}
-            className="bg-gray-500 text-white px-4 py-2 rounded-xl hover:bg-gray-700 transition"
-          >
-            ← Volver atrás
-          </button>
-        </div>
-
-        {fichas.length === 0 ? (
-          <p className="text-center text-gray-500 text-lg">Cargando fichas...</p>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {fichas.map((ficha) => (
-              <div
-                key={ficha.id}
-                className="bg-white border border-gray-200 shadow-md rounded-2xl p-6 hover:shadow-xl transition"
-              >
-                <div className="mb-4">
-                  <h2 className="text-xl font-semibold text-gray-800 mb-1">
-                    {ficha.nombre || 'Sin nombre'}
-                  </h2>
-                  <p className="text-gray-600 text-sm capitalize">
-                    Tipo: {ficha.coleccion.replace('fichas_', '').replace('_', ' ')}
-                  </p>
-                </div>
-
-                <button
-                  onClick={() => generateQRConLogo(ficha)}
-                  className="w-full bg-[#00bfa5] text-white font-medium py-2 rounded-xl hover:bg-[#009e88] transition"
-                >
-                  Generar y Descargar QR
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
+      <div className="flex justify-end mb-4">
+        <button
+          onClick={() => navigate('/')}
+          className="bg-gray-500 text-white px-4 py-2 rounded-xl hover:bg-gray-700 transition"
+        >
+          ← Volver atrás
+        </button>
       </div>
+
+      {fichas.length === 0 ? (
+        <p className="text-center text-gray-500">Cargando fichas...</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white border border-gray-200 shadow-lg rounded-2xl">
+            <thead className="bg-[#00bfa5] text-white">
+              <tr>
+                <th className="py-3 px-6 text-left">Nombre</th>
+                <th className="py-3 px-6 text-left">Tipo de Ficha</th>
+                <th className="py-3 px-6 text-center">QR</th>
+              </tr>
+            </thead>
+            <tbody>
+              {fichas.map((ficha, index) => (
+                <tr key={ficha.id} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                  <td className="py-3 px-6">{ficha.nombre || 'Sin nombre'}</td>
+                  <td className="py-3 px-6 capitalize">
+                    {ficha.coleccion.replace('fichas_', '').replace('_', ' ')}
+                  </td>
+                  <td className="py-3 px-6 text-center">
+                    <button
+                      onClick={() => generateQRConLogo(ficha)}
+                      className="bg-[#00bfa5] text-white px-4 py-2 rounded-xl hover:bg-[#009e88] transition"
+                    >
+                      Descargar QR
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
-  );
-};
+  </div>
+);
 
 export default PanelAdm;
+
 
 
