@@ -4,7 +4,7 @@ import { db } from './firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import QRCode from 'qrcode';
 import { useNavigate } from 'react-router-dom';
-import logo from '../assets/Logo.png';
+import logo from '../assets/Logo.png'; // <- ESTA IMPORTACIÓN ESTÁ BIEN
 
 const PanelAdm = () => {
   const { user } = useAuth();
@@ -63,14 +63,14 @@ const PanelAdm = () => {
       });
 
       const ctx = canvas.getContext('2d');
-      const logo = new Image();
-      logo.src = logoImage;
+      const image = new Image();
+      image.src = logo; // <- ✅ Aquí está el logo correcto
 
-      logo.onload = () => {
+      image.onload = () => {
         const size = 60;
         const x = (canvas.width - size) / 2;
         const y = (canvas.height - size) / 2;
-        ctx.drawImage(logo, x, y, size, size);
+        ctx.drawImage(image, x, y, size, size);
 
         const link = document.createElement('a');
         link.download = `qr_medqr_${ficha.id}.png`;
@@ -78,7 +78,7 @@ const PanelAdm = () => {
         link.click();
       };
 
-      logo.onerror = () => {
+      image.onerror = () => {
         alert('No se pudo cargar el logo');
       };
     } catch (e) {
@@ -133,3 +133,4 @@ const PanelAdm = () => {
 };
 
 export default PanelAdm;
+
