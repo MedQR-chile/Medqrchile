@@ -1,10 +1,11 @@
 // src/pages/adminpanel.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useRef } from 'react';
 import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { db } from './firebase';  // Ajusta si tu archivo firebase.js está en otra carpeta
-import { toCanvas } from 'qrcode';  // Importamos solo toCanvas para generar QR
+import { QRCodeCanvas } from 'qrcode.react'; // Importamos solo toCanvas para generar QR
 import { useAuth } from './AuthContext';  // Ajusta según donde tengas AuthContext.js
 import { useNavigate } from 'react-router-dom';
+import * as htmlToImage from 'html-to-image';
 
 function AdminPanel() {
   const { user } = useAuth();
