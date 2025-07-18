@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { db } from './firebase';
+import { useAuth } from './AuthContext';
 import { collection, getDocs } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
+import { QrCodeIcon } from 'lucide-react';
+import QRCode from 'qrcode';
 
 function PanelAdm() {
   const [fichas, setFichas] = useState([]);
