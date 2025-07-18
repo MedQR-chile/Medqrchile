@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useAuth } from './AuthContext';
+import { useAuth } from '../AuthContext';
 import { db } from './firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import QRCode from 'qrcode';
