@@ -1,209 +1,148 @@
-// src/pages/adminpanel.jsx
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { db } from './firebase';
-import QRCode from 'qrcode';
-import { useAuth } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
 
-function AdminPanel() {
-  const { user } = useAuth();
-  const navigate = useNavigate();
+function PanelAdm() {
   const [fichas, setFichas] = useState([]);
-  const [cargando, setCargando] = useState(true);
-  const [hoveredBtn, setHoveredBtn] = useState(null);
-  const correoAdmin = "medqrchile@gmail.com";
+  const [descargadas, setDescargadas] = useState({});
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchFichas = async () => {
-      try {
-        const colecciones = [
-          'fichas_individuales',
-          'fichas_familiares',
-          'fichas_institucionales'
-        ];
-        let todasFichas = [];
-        for (const col of colecciones) {
-          const snap = await getDocs(collection(db, col));
-          todasFichas = todasFichas.concat(
-            snap.docs.map(doc => ({ id: doc.id, coleccion: col, ...doc.data() }))
-          );
-        }
-        setFichas(todasFichas);
-      } catch (e) {
-        console.error('Error al cargar fichas:', e);
-      } finally {
-        setCargando(false);
+    const obtenerFichas = async () => {
+      const colecciones = [
+        'fichas_individuales',
+        'fichas_familiares',
+        'fichas_institucionales',
+      ];
+      let todasFichas = [];
+      for (const col of colecciones) {
+        const snap = await getDocs(collection(db, col));
+        todasFichas = todasFichas.concat(
+          snap.docs.map((doc) => ({ id: doc.id, coleccion: col, ...doc.data() }))
+        );
       }
+      setFichas(todasFichas);
     };
 
-    if (user?.email === correoAdmin) {
-      fetchFichas();
-    } else {
-      setCargando(false);
-    }
-  }, [user]);
+    obtenerFichas();
+  }, []);
 
-  const buttonColor = '#00bfa5';
-  const buttonHoverColor = '#009e88';
-
-  const buttonStyle = {
-    backgroundColor: buttonColor,
-    color: '#fff',
-    border: 'none',
-    borderRadius: 6,
-    padding: '8px 14px',
-    cursor: 'pointer',
-    fontWeight: 'bold',
-    transition: 'background-color 0.3s ease',
-    marginRight: 10,
+  const marcarDescargada = (id) => {
+    setDescargadas((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
   };
 
-  // Generar QR con logo y descargar
-  const generateQRConLogo = async (ficha) => {
-    try {
-      const canvas = document.createElement('canvas');
-      const urlFicha = `https://medqrchile.cl/ver-ficha-individual/${ficha.id}`;
-      await QRCode.toCanvas(canvas, urlFicha, {
-        errorCorrectionLevel: 'H',
-        width: 300,
-      });
-
-      const ctx = canvas.getContext('2d');
-      const logo = new Image();
-      logo.src = '/Logo.png';
-
-      logo.onload = () => {
-        const size = 60;
-        const x = (canvas.width - size) / 2;
-        const y = (canvas.height - size) / 2;
-        ctx.drawImage(logo, x, y, size, size);
-
-        const link = document.createElement('a');
-        link.download = `qr_medqr_${ficha.id}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-      };
-
-      logo.onerror = () => {
-        alert('No se pudo cargar el logo desde /Logo.png');
-      };
-    } catch (e) {
-      console.error('Error generando QR con logo:', e);
-      alert('Error al generar el QR');
-    }
+  const volverAtras = () => {
+    navigate('/');
   };
 
-  // Alternar campo descargado en Firestore
-  const toggleDescargado = async (ficha) => {
-    try {
-      const fichaRef = doc(db, ficha.coleccion, ficha.id);
-      await updateDoc(fichaRef, { descargado: !ficha.descargado });
-      setFichas(prev =>
-        prev.map(f =>
-          f.id === ficha.id ? { ...f, descargado: !ficha.descargado } : f
-        )
-      );
-    } catch (error) {
-      alert('Error actualizando estado: ' + error.message);
+  // Función para obtener URL según tipo ficha
+  const obtenerUrlFicha = (ficha) => {
+    const baseUrl = 'https://medqrchile.cl';
+    switch (ficha.coleccion) {
+      case 'fichas_individuales':
+        return `${baseUrl}/ver-ficha-individual/${ficha.id}`;
+      case 'fichas_familiares':
+        return `${baseUrl}/ver-ficha-familiar/${ficha.id}`;
+      case 'fichas_institucionales':
+        return `${baseUrl}/ver-ficha-institucional/${ficha.id}`;
+      default:
+        return `${baseUrl}/ver-ficha-individual/${ficha.id}`;
     }
   };
-
-  if (cargando) {
-    return <p style={{ padding: 20 }}>Cargando...</p>;
-  }
-  if (user?.email !== correoAdmin) {
-    return (
-      <p style={{ padding: 20, color: 'red' }}>
-        Acceso denegado. No eres administrador.
-      </p>
-    );
-  }
 
   return (
-    <div style={{ padding: 20, maxWidth: 900, margin: 'auto' }}>
-      <h2 style={{ marginBottom: 20 }}>Panel de Administrador - MedQR Chile</h2>
+    <div style={{ padding: '2rem', fontFamily: 'Arial, sans-serif' }}>
+      <h2 style={{ color: '#00bfa5', marginBottom: '1rem' }}>Panel de Administración</h2>
 
-      {fichas.length === 0 ? (
-        <p>No hay fichas registradas.</p>
-      ) : (
-        <table
-          style={{
-            width: '100%',
-            borderCollapse: 'collapse',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-          }}
-        >
-          <thead style={{ backgroundColor: buttonColor, color: 'white' }}>
-            <tr>
-              <th style={{ padding: '12px 15px', textAlign: 'left' }}>Nombre</th>
-              <th style={{ padding: '12px 15px', textAlign: 'left' }}>Tipo</th>
-              <th style={{ padding: '12px 15px', textAlign: 'center' }}>QR</th>
-              <th style={{ padding: '12px 15px', textAlign: 'center' }}>Descargado</th>
+      <button
+        onClick={volverAtras}
+        style={{
+          marginBottom: '1.5rem',
+          padding: '10px 20px',
+          backgroundColor: '#00bfa5',
+          color: 'white',
+          border: 'none',
+          borderRadius: '6px',
+          cursor: 'pointer',
+        }}
+      >
+        ← Volver atrás
+      </button>
+
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ backgroundColor: '#00bfa5', color: 'white' }}>
+              <th style={styles.th}>Nombre</th>
+              <th style={styles.th}>Descargar QR</th>
+              <th style={styles.th}>¿Descargada?</th>
             </tr>
           </thead>
           <tbody>
-            {fichas.map((f) => (
-              <tr
-                key={f.id}
-                style={{
-                  borderBottom: '1px solid #ddd',
-                  transition: 'background-color 0.2s',
-                }}
-                onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#f5f5f5')}
-                onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
-              >
-                <td style={{ padding: '10px 15px' }}>{f.nombre || 'Sin nombre'}</td>
-                <td style={{ padding: '10px 15px', textTransform: 'capitalize' }}>
-                  {f.coleccion.replace('fichas_', '')}
-                </td>
-                <td style={{ padding: '10px 15px', textAlign: 'center' }}>
-                  <button
+            {fichas.map((ficha) => (
+              <tr key={ficha.id} style={styles.tr}>
+                <td style={styles.td}>{ficha.nombre || 'Sin nombre'}</td>
+                <td style={styles.td}>
+                  <a
+                    href={obtenerUrlFicha(ficha)}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     style={{
-                      ...buttonStyle,
-                      ...(hoveredBtn === f.id ? { backgroundColor: buttonHoverColor } : {})
+                      backgroundColor: '#00bfa5',
+                      color: 'white',
+                      padding: '6px 12px',
+                      borderRadius: '5px',
+                      textDecoration: 'none',
+                      fontSize: '14px',
                     }}
-                    onMouseEnter={() => setHoveredBtn(f.id)}
-                    onMouseLeave={() => setHoveredBtn(null)}
-                    onClick={() => generateQRConLogo(f)}
                   >
-                    Descargar QR con logo
-                  </button>
+                    Ver QR
+                  </a>
                 </td>
-                <td style={{ padding: '10px 15px', textAlign: 'center' }}>
+                <td style={styles.td}>
                   <button
+                    onClick={() => marcarDescargada(ficha.id)}
                     style={{
-                      ...buttonStyle,
-                      backgroundColor: f.descargado ? '#007a66' : buttonColor,
+                      backgroundColor: descargadas[ficha.id] ? '#00bfa5' : '#ccc',
+                      color: descargadas[ficha.id] ? 'white' : '#333',
+                      border: 'none',
+                      padding: '6px 12px',
+                      borderRadius: '5px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
                     }}
-                    onClick={() => toggleDescargado(f)}
                   >
-                    {f.descargado ? 'Descargado' : 'Marcar como descargado'}
+                    {descargadas[ficha.id] ? 'Sí' : 'No'}
                   </button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-      )}
-
-      <button
-        onClick={() => navigate(-1)}
-        style={{
-          marginTop: 30,
-          padding: '10px 18px',
-          backgroundColor: buttonColor,
-          color: 'white',
-          border: 'none',
-          borderRadius: 6,
-          cursor: 'pointer',
-          fontWeight: 'bold',
-        }}
-      >
-        ← Volver atrás
-      </button>
+      </div>
     </div>
   );
 }
 
-export default AdminPanel;
+const styles = {
+  th: {
+    padding: '10px',
+    textAlign: 'left',
+    borderBottom: '2px solid #ccc',
+    fontSize: '16px',
+  },
+  td: {
+    padding: '10px',
+    borderBottom: '1px solid #eee',
+    fontSize: '15px',
+  },
+  tr: {
+    backgroundColor: '#f9f9f9',
+  },
+};
+
+export default PanelAdm;
