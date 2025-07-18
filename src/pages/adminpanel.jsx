@@ -4,7 +4,7 @@ import { db } from './firebase';
 import QRCode from 'qrcode';
 import { useAuth } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
-import logo from './assets/Logo.png'; // Ajusta el path según la ubicación exacta
+import logo from '../assets/Logo.png'; // Ajusta el path según la ubicación exacta
 
 function PanelAdm() {
   const [fichasIndividuales, setFichasIndividuales] = useState([]);
