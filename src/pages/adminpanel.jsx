@@ -90,20 +90,27 @@ const PanelAdm = () => {
   };
 
   return (
-    <div className="min-h-screen p-6 bg-gray-50">
-      <h1 className="text-3xl font-bold text-center mb-6">Panel Administrador</h1>
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-blue-100 p-8">
+      <h1 className="text-4xl font-bold text-center text-blue-800 mb-10 drop-shadow-md">
+        Panel de Administrador
+      </h1>
 
       {fichas.length === 0 ? (
-        <p className="text-center text-gray-600">Cargando fichas...</p>
+        <p className="text-center text-gray-500 text-lg">Cargando fichas...</p>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {fichas.map((ficha) => (
-            <div key={ficha.id} className="bg-white shadow rounded-xl p-4 border border-gray-200">
-              <p className="font-semibold text-lg mb-2">{ficha.nombre || 'Sin nombre'}</p>
-              <p className="text-sm text-gray-600 mb-2">Tipo: {ficha.coleccion.replace('fichas_', '')}</p>
+            <div
+              key={ficha.id}
+              className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition duration-300"
+            >
+              <p className="font-semibold text-xl text-gray-800 mb-2">{ficha.nombre || 'Sin nombre'}</p>
+              <p className="text-sm text-gray-600 mb-4 capitalize">
+                Tipo: {ficha.coleccion.replace('fichas_', '')}
+              </p>
               <button
                 onClick={() => generateQRConLogo(ficha.id)}
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg shadow-md transition duration-200"
               >
                 Generar QR
               </button>
