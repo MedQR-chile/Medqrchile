@@ -9,74 +9,80 @@ import { useNavigate } from 'react-router-dom';
 function AdminPanel() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [fichasIndividuales, setFichasIndividuales] = useState([]);
-  const [fichasFamiliares, setFichasFamiliares] = useState([]);
-  const [fichasInstitucionales, setFichasInstitucionales] = useState([]);
-  const qrRefs = useRef({});
+  const [fichas, setFichas] = useState([]);
+  const [qrGenerado, setQrGenerado] = useState(null);
+  const [tipoFicha, setTipoFicha] = useState('');
 
   useEffect(() => {
-    if (!user || user.email !== 'tucorreo@admin.cl') {
-      navigate('/');
-    }
+    const fetchData = async () => {
+      if (!user || user.email !== 'medqrchile@gmail.com') {
+        navigate('/');
+        return;
+      }
 
-    const fetchFichas = async () => {
-      const fichasInd = await getDocs(collection(db, 'fichasIndividuales'));
-      const fichasFam = await getDocs(collection(db, 'fichasFamiliares'));
-      const fichasInst = await getDocs(collection(db, 'fichasInstitucionales'));
+      const colecciones = [
+        { nombre: 'fichas_individuales', tipo: 'individual' },
+        { nombre: 'fichas_familiares', tipo: 'familiar' },
+        { nombre: 'fichas_institucionales', tipo: 'institucional' }
+      ];
 
-      setFichasIndividuales(fichasInd.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-      setFichasFamiliares(fichasFam.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-      setFichasInstitucionales(fichasInst.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      const fichasTotales = [];
+
+      for (const coleccion of colecciones) {
+        const querySnapshot = await getDocs(collection(db, coleccion.nombre));
+        querySnapshot.forEach(docSnap => {
+          fichasTotales.push({
+            id: docSnap.id,
+            ...docSnap.data(),
+            tipo: coleccion.tipo,
+            coleccion: coleccion.nombre
+          });
+        });
+      }
+
+      setFichas(fichasTotales);
     };
 
-    fetchFichas();
+    fetchData();
   }, [user, navigate]);
 
-  const handleDownloadQR = (id, tipo) => {
-    const canvas = qrRefs.current[`${tipo}-${id}`];
-    const url = canvas.toDataURL('image/png');
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `QR_${tipo}_${id}.png`;
-    link.click();
+  const generarQR = async (ficha) => {
+    setQrGenerado({
+      id: ficha.id,
+      tipo: ficha.tipo,
+      url: `https://medqrchile.cl/ficha/${ficha.id}?tipo=${ficha.tipo}`
+    });
+
+    // Guardar que fue descargado
+    const fichaRef = doc(db, ficha.coleccion, ficha.id);
+    await updateDoc(fichaRef, {
+      descargado: true
+    });
   };
 
-  const renderFichaQR = (ficha, tipo) => (
-    <div key={ficha.id} style={{ margin: '20px', border: '1px solid gray', padding: '10px' }}>
-      <h3>{ficha.nombre}</h3>
-      <QRCode
-        value={`${window.location.origin}/ver-ficha-${tipo}/${ficha.id}`}
-        size={150}
-        ref={(ref) => {
-          if (ref) {
-            qrRefs.current[`${tipo}-${ficha.id}`] = ref.canvas;
-          }
-        }}
-        includeMargin
-      />
-      <br />
-      <button onClick={() => handleDownloadQR(ficha.id, tipo)}>Descargar QR</button>
-    </div>
-  );
-
   return (
-    <div style={{ padding: '20px' }}>
-      <h2>Panel de Administrador</h2>
-      
-      <h3>Fichas Individuales</h3>
-      <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-        {fichasIndividuales.map(ficha => renderFichaQR(ficha, 'individual'))}
-      </div>
+    <div className="p-6 max-w-4xl mx-auto">
+      <h1 className="text-3xl font-bold mb-4">Panel de Administrador</h1>
+      {fichas.map((ficha, index) => (
+        <div key={index} className="border rounded p-4 mb-4 shadow">
+          <p><strong>Nombre:</strong> {ficha.nombre}</p>
+          <p><strong>Tipo:</strong> {ficha.tipo}</p>
+          <button
+            onClick={() => generarQR(ficha)}
+            className="bg-blue-600 text-white px-4 py-2 mt-2 rounded"
+          >
+            Generar QR
+          </button>
+        </div>
+      ))}
 
-      <h3>Fichas Familiares</h3>
-      <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-        {fichasFamiliares.map(ficha => renderFichaQR(ficha, 'familiar'))}
-      </div>
-
-      <h3>Fichas Institucionales</h3>
-      <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-        {fichasInstitucionales.map(ficha => renderFichaQR(ficha, 'institucional'))}
-      </div>
+      {qrGenerado && (
+        <div className="mt-6 border-t pt-4">
+          <h2 className="text-xl font-semibold mb-2">Código QR generado</h2>
+          <QRCode value={qrGenerado.url} size={256} />
+          <p className="mt-2">URL: {qrGenerado.url}</p>
+        </div>
+      )}
     </div>
   );
 }
