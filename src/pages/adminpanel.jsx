@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { db } from './firebase';
+import QRCode from 'qrcode';
+import { useAuth } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 function PanelAdm() {
