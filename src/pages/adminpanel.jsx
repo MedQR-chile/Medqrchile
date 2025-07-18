@@ -4,7 +4,7 @@ import { db } from './firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import QRCode from 'qrcode';
 import { useNavigate } from 'react-router-dom';
-import Logo from './assets/Logo.png'; // Asegúrate que está en src/assets/Logo.png
+import { QrCodeIcon } from 'lucide-react';
 
 const PanelAdm = () => {
   const { user } = useAuth();
@@ -67,7 +67,8 @@ const PanelAdm = () => {
 
       const ctx = canvas.getContext('2d');
       const logo = new Image();
-      logo.src = Logo;
+      logo.src = '/Logo.png';
+
       logo.onload = () => {
         const size = 60;
         const x = (canvas.width - size) / 2;
@@ -81,7 +82,7 @@ const PanelAdm = () => {
       };
 
       logo.onerror = () => {
-        alert('No se pudo cargar el logo desde src/assets/Logo.png');
+        alert('No se pudo cargar el logo desde /Logo.png');
       };
     } catch (e) {
       console.error('Error generando QR con logo:', e);
@@ -90,24 +91,31 @@ const PanelAdm = () => {
   };
 
   return (
-    <div className="min-h-screen p-6 bg-gray-50">
-      <h1 className="text-3xl font-bold text-center mb-6">Panel Administrador</h1>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white p-6">
+      <h1 className="text-4xl font-bold text-center text-blue-700 mb-8">Panel Administrador</h1>
 
       {fichas.length === 0 ? (
-        <p className="text-center text-gray-600">Cargando fichas...</p>
+        <p className="text-center text-gray-600 text-lg">Cargando fichas...</p>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {fichas.map((ficha) => (
-            <div key={ficha.id} className="bg-white shadow rounded-xl p-4 border border-gray-200">
-              <p className="font-semibold text-lg mb-2">{ficha.nombre || 'Sin nombre'}</p>
-              <p className="text-sm text-gray-600 mb-2">
-                Tipo: {ficha.coleccion.replace('fichas_', '')}
+            <div
+              key={ficha.id}
+              className="bg-white border border-gray-200 rounded-2xl shadow hover:shadow-md transition p-5"
+            >
+              <h2 className="text-xl font-semibold text-gray-800 mb-2">{ficha.nombre || 'Sin nombre'}</h2>
+              <p className="text-sm text-gray-500 mb-4">
+                Tipo de ficha:{' '}
+                <span className="capitalize text-blue-600 font-medium">
+                  {ficha.coleccion.replace('fichas_', '')}
+                </span>
               </p>
               <button
                 onClick={() => generateQRConLogo(ficha.id)}
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+                className="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-xl flex items-center justify-center gap-2 hover:bg-blue-700 transition"
               >
-                Generar y Descargar QR
+                <QrCodeIcon className="w-5 h-5" />
+                Generar QR
               </button>
             </div>
           ))}
@@ -118,4 +126,3 @@ const PanelAdm = () => {
 };
 
 export default PanelAdm;
-
