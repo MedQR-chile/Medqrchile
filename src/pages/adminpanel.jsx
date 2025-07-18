@@ -133,7 +133,6 @@ const PanelAdm = () => {
     </div>
   </div>
 );
-
 export default PanelAdm;
 
 
