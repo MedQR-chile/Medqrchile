@@ -1,139 +1,126 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { db } from '../firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import QRCode from 'qrcode.react';
-import logoImage from '../assets/logo.png'; // ← Esta línea DEBE ir aquí
-import '../styles/adminpanel.css'; // si tienes un archivo CSS opcional
+import logoImage from '../assets/logo.png'; // Importación al inicio
+import '../App.css'; // Si tienes estilos globales
 
-const PanelAdm = () => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
+const AdminPanel = () => {
   const [fichas, setFichas] = useState([]);
-
-  const esAdmin = user?.email === 'medqrchile@gmail.com';
+  const [qrGenerado, setQrGenerado] = useState(null);
+  const [descargadas, setDescargadas] = useState({});
 
   useEffect(() => {
-    if (!esAdmin) {
-      navigate('/');
-      return;
-    }
-
     const obtenerFichas = async () => {
-      try {
-        const colecciones = ['fichas_individuales', 'fichas_familiares', 'fichas_institucionales'];
-        const todasFichas = [];
-
-        for (const nombreColeccion of colecciones) {
-          const snapshot = await getDocs(collection(db, nombreColeccion));
-          snapshot.forEach(doc => {
-            todasFichas.push({
-              id: doc.id,
-              ...doc.data(),
-              coleccion: nombreColeccion,
-            });
-          });
-        }
-
-        setFichas(todasFichas);
-      } catch (error) {
-        console.error('Error obteniendo fichas:', error);
-      }
+      const fichasSnapshot = await getDocs(collection(db, 'fichas'));
+      const fichasData = fichasSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setFichas(fichasData);
     };
 
     obtenerFichas();
-  }, [esAdmin, navigate]);
+  }, []);
 
-  const generateQRConLogo = async (ficha) => {
-    try {
-      let tipoRuta = '';
-      if (ficha.coleccion === 'fichas_individuales') tipoRuta = 'ver-ficha-individual';
-      if (ficha.coleccion === 'fichas_familiares') tipoRuta = 'ver-ficha-familiar';
-      if (ficha.coleccion === 'fichas_institucionales') tipoRuta = 'ver-ficha-institucional';
-
-      const urlQR = `https://medqrchile.cl/${tipoRuta}/${ficha.id}`;
-      const canvas = document.createElement('canvas');
-      await QRCode.toCanvas(canvas, urlQR, {
-        errorCorrectionLevel: 'H',
-        width: 300,
-      });
-
-      const ctx = canvas.getContext('2d');
-      const logo = new Image();
-      logo.src = logoImage;
-
-      logo.onload = () => {
-        const size = 60;
-        const x = (canvas.width - size) / 2;
-        const y = (canvas.height - size) / 2;
-        ctx.drawImage(logo, x, y, size, size);
-
-        const link = document.createElement('a');
-        link.download = `qr_medqr_${ficha.id}.png`;
-        link.href = canvas.toDataURL();
-        link.click();
-      };
-
-      logo.onerror = () => {
-        alert('No se pudo cargar el logo');
-      };
-    } catch (e) {
-      console.error('Error generando QR con logo:', e);
-      alert('Error al generar el QR');
-    }
+  const generarQR = (id) => {
+    setQrGenerado(id);
   };
 
- return (
-  <div className="min-h-screen p-8 bg-gray-100">
-    <div className="max-w-6xl mx-auto">
-      <h1 className="text-4xl font-bold text-center text-[#00bfa5] mb-8">Panel de Administrador</h1>
+  const descargarQR = (id) => {
+    const canvas = document.getElementById(`qr-${id}`);
+    const url = canvas.toDataURL('image/png');
 
-      <div className="flex justify-end mb-4">
-        <button
-          onClick={() => navigate('/')}
-          className="bg-gray-500 text-white px-4 py-2 rounded-xl hover:bg-gray-700 transition"
-        >
-          ← Volver atrás
-        </button>
-      </div>
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${id}.png`;
+    a.click();
 
-      {fichas.length === 0 ? (
-        <p className="text-center text-gray-500">Cargando fichas...</p>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white border border-gray-200 shadow-lg rounded-2xl">
-            <thead className="bg-[#00bfa5] text-white">
-              <tr>
-                <th className="py-3 px-6 text-left">Nombre</th>
-                <th className="py-3 px-6 text-left">Tipo de Ficha</th>
-                <th className="py-3 px-6 text-center">QR</th>
-              </tr>
-            </thead>
-            <tbody>
-              {fichas.map((ficha, index) => (
-                <tr key={ficha.id} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                  <td className="py-3 px-6">{ficha.nombre || 'Sin nombre'}</td>
-                  <td className="py-3 px-6 capitalize">
-                    {ficha.coleccion.replace('fichas_', '').replace('_', ' ')}
-                  </td>
-                  <td className="py-3 px-6 text-center">
-                    <button
-                      onClick={() => generateQRConLogo(ficha)}
-                      className="bg-[#00bfa5] text-white px-4 py-2 rounded-xl hover:bg-[#009e88] transition"
-                    >
-                      Descargar QR
+    setDescargadas(prev => ({ ...prev, [id]: true }));
+  };
+
+  return (
+    <div style={{ padding: '20px' }}>
+      <img src={logoImage} alt="Logo" style={{ width: '150px', marginBottom: '20px' }} />
+
+      <h2 style={{ color: '#00bfa5' }}>Panel de Administración</h2>
+
+      <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
+        <thead>
+          <tr style={{ backgroundColor: '#00bfa5', color: 'white' }}>
+            <th style={styles.th}>Nombre</th>
+            <th style={styles.th}>Generar QR</th>
+            <th style={styles.th}>Descargar</th>
+            <th style={styles.th}>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          {fichas.map((ficha) => (
+            <tr key={ficha.id} style={{ backgroundColor: '#f9f9f9' }}>
+              <td style={styles.td}>{ficha.nombre}</td>
+              <td style={styles.td}>
+                <button onClick={() => generarQR(ficha.id)} style={styles.button}>Generar</button>
+              </td>
+              <td style={styles.td}>
+                {qrGenerado === ficha.id && (
+                  <>
+                    <QRCode
+                      id={`qr-${ficha.id}`}
+                      value={`https://medqrchile.vercel.app/ficha/${ficha.id}`}
+                      size={100}
+                      includeMargin={true}
+                      style={{ display: 'none' }}
+                    />
+                    <button onClick={() => descargarQR(ficha.id)} style={styles.button}>
+                      Descargar
                     </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
-  </div>
-);
+                  </>
+                )}
+              </td>
+              <td style={styles.td}>
+                {descargadas[ficha.id] ? '✅ Descargado' : '⬜ No descargado'}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
 
-  export default PanelAdm;
+      <button onClick={() => window.history.back()} style={{ marginTop: '30px', ...styles.buttonVolver }}>
+        Volver atrás
+      </button>
+    </div>
+  );
+};
+
+const styles = {
+  th: {
+    padding: '12px',
+    textAlign: 'left',
+    borderBottom: '2px solid #ddd',
+  },
+  td: {
+    padding: '12px',
+    borderBottom: '1px solid #ddd',
+  },
+  button: {
+    padding: '8px 12px',
+    backgroundColor: '#00bfa5',
+    color: 'white',
+    border: 'none',
+    borderRadius: '6px',
+    cursor: 'pointer',
+  },
+  buttonVolver: {
+    padding: '10px 16px',
+    backgroundColor: '#555',
+    color: 'white',
+    borderRadius: '6px',
+    cursor: 'pointer',
+  },
+};
+
+export default AdminPanel;
+
 
 
 
