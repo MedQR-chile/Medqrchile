@@ -4,6 +4,8 @@ import { collection, getDocs } from 'firebase/firestore';
 import QRCode from 'qrcode';
 import logoImage from '../assets/Logo.png'; // Importación al inicio
 import '../App.css'; // Si tienes estilos globales
+import { useAuth } from './AuthContext';         // importación de tu contexto de autenticación
+import { useNavigate } from 'react-router-dom'; // importación para navegar en React Router
 
 const PanelAdm = () => {
   const { user } = useAuth();
