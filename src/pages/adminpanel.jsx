@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { db } from '../firebase';
+import { db } from './firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import QRCode from 'qrcode.react';
 import logoImage from '../assets/logo.png'; // Importación al inicio
