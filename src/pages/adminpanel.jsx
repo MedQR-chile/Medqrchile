@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { useAuth } from './AuthContext';
-import { db } from './firebase';
+import React, { useState, useEffect } from 'react';
+import { db } from '../firebase';
 import { collection, getDocs } from 'firebase/firestore';
-import QRCode from 'qrcode';
-import { useNavigate } from 'react-router-dom';
-import logoImage from '../assets/Logo.png';
+import QRCode from 'qrcode.react';
+import logoImage from '../assets/logo.png'; // ← Esta línea DEBE ir aquí
+import '../styles/adminpanel.css'; // si tienes un archivo CSS opcional
 
 const PanelAdm = () => {
   const { user } = useAuth();
@@ -133,7 +132,8 @@ const PanelAdm = () => {
     </div>
   </div>
 );
-export default PanelAdm;
+
+  export default PanelAdm;
 
 
 
