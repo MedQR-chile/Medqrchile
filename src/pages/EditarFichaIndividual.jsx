@@ -67,69 +67,94 @@ function EditarFichaIndividual() {
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label>Nombre</label>
-          <input name="nombre" value={form.nombre} onChange={handleChange} required />
+          <input name="nombre" value={form.nombre || ''} onChange={handleChange} required />
         </div>
 
         <div className="form-group">
           <label>RUT</label>
-          <input name="rut" value={form.rut} onChange={handleChange} required />
+          <input name="rut" value={form.rut || ''} onChange={handleChange} required />
         </div>
 
         <div className="form-group">
           <label>Fecha de nacimiento</label>
-          <input type="date" name="fechaNacimiento" value={form.fechaNacimiento} onChange={handleChange} required />
+          <input type="date" name="fechaNacimiento" value={form.fechaNacimiento || ''} onChange={handleChange} required />
         </div>
 
         <div className="form-group">
           <label>Dirección</label>
-          <input name="direccion" value={form.direccion} onChange={handleChange} required />
+          <input name="direccion" value={form.direccion || ''} onChange={handleChange} required />
         </div>
 
         <div className="form-group">
           <label>Centro de atención preferente</label>
-          <input name="centro" value={form.centro} onChange={handleChange} />
+          <input name="centro" value={form.centro || ''} onChange={handleChange} />
         </div>
 
         <div className="form-group">
           <label>Previsión</label>
-          <input name="prevision" value={form.prevision} onChange={handleChange} />
+          <input name="prevision" value={form.prevision || ''} onChange={handleChange} />
         </div>
 
         <div className="form-group">
           <label>Alergias</label>
-          <textarea name="alergias" value={form.alergias} onChange={handleChange} />
+          <textarea name="alergias" value={form.alergias || ''} onChange={handleChange} />
         </div>
 
         <div className="form-group">
           <label>Enfermedades crónicas</label>
-          <textarea name="enfermedades" value={form.enfermedades} onChange={handleChange} />
+          <textarea name="enfermedades" value={form.enfermedades || ''} onChange={handleChange} />
+        </div>
+
+        <div className="form-group">
+          <label>Grupo sanguíneo</label>
+          <input name="grupoSanguineo" value={form.grupoSanguineo || ''} onChange={handleChange} />
+        </div>
+
+        <div className="form-group">
+          <label>Cirugías previas</label>
+          <textarea name="cirugiasPrevias" value={form.cirugiasPrevias || ''} onChange={handleChange} />
         </div>
 
         <div className="form-group">
           <label>Medicamentos de uso habitual</label>
-          <textarea name="medicamentos" value={form.medicamentos} onChange={handleChange} />
+          <textarea name="medicamentos" value={form.medicamentos || ''} onChange={handleChange} />
         </div>
 
         <h4 className="section-title">Contacto de Emergencia</h4>
-
         <div className="form-group">
           <label>Nombre</label>
-          <input name="contactoNombre" value={form.contactoNombre} onChange={handleChange} />
+          <input name="contactoNombre" value={form.contactoNombre || ''} onChange={handleChange} />
         </div>
 
         <div className="form-group">
           <label>Parentesco</label>
-          <input name="contactoParentesco" value={form.contactoParentesco} onChange={handleChange} />
+          <input name="contactoParentesco" value={form.contactoParentesco || ''} onChange={handleChange} />
         </div>
 
         <div className="form-group">
           <label>Número</label>
-          <input name="contactoNumero" value={form.contactoNumero} onChange={handleChange} />
+          <input name="contactoNumero" value={form.contactoNumero || ''} onChange={handleChange} />
+        </div>
+
+        <h4 className="section-title">Segundo Contacto de Emergencia</h4>
+        <div className="form-group">
+          <label>Nombre</label>
+          <input name="contactoNombre2" value={form.contactoNombre2 || ''} onChange={handleChange} />
+        </div>
+
+        <div className="form-group">
+          <label>Parentesco</label>
+          <input name="contactoParentesco2" value={form.contactoParentesco2 || ''} onChange={handleChange} />
+        </div>
+
+        <div className="form-group">
+          <label>Número</label>
+          <input name="contactoNumero2" value={form.contactoNumero2 || ''} onChange={handleChange} />
         </div>
 
         <div className="form-group">
           <label>Observaciones</label>
-          <textarea name="observaciones" value={form.observaciones} onChange={handleChange} />
+          <textarea name="observaciones" value={form.observaciones || ''} onChange={handleChange} />
         </div>
 
         {form.fotoURL && (
@@ -149,7 +174,6 @@ function EditarFichaIndividual() {
         </button>
       </form>
 
-      {/* Botón Volver atrás */}
       <button
         style={{
           backgroundColor: '#00bfa5',
