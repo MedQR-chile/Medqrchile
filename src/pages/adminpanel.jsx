@@ -1,17 +1,22 @@
+// PanelAdm mejorado con búsqueda, fechas, ver QR, iconos y más
 import React, { useEffect, useState } from 'react';
 import { db } from './firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import QRCode from 'qrcode';
-import logoImage from '../assets/Logo.png'; // Importación al inicio
-import '../App.css'; // Si tienes estilos globales
-import { useAuth } from './AuthContext';         // importación de tu contexto de autenticación
-import { useNavigate } from 'react-router-dom'; // importación para navegar en React Router
+import logoImage from '../assets/Logo.png';
+import '../App.css';
+import { useAuth } from './AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { FaDownload, FaEye, FaSearch, FaCheck, FaTimes, FaEdit } from 'react-icons/fa';
 
 const PanelAdm = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [fichas, setFichas] = useState([]);
   const [descargadas, setDescargadas] = useState({});
+  const [filtro, setFiltro] = useState('');
+  const [qrActual, setQrActual] = useState(null);
+  const [mostrarQR, setMostrarQR] = useState(false);
 
   const esAdmin = user?.email === 'medqrchile@gmail.com';
 
@@ -46,127 +51,119 @@ const PanelAdm = () => {
     obtenerFichas();
   }, [esAdmin, navigate]);
 
-  const generarYDescargarQR = async (ficha) => {
-    try {
-      let tipoRuta = '';
-      if (ficha.coleccion === 'fichas_individuales') tipoRuta = 'ver-ficha-individual';
-      else if (ficha.coleccion === 'fichas_familiares') tipoRuta = 'ver-ficha-familiar';
-      else if (ficha.coleccion === 'fichas_institucionales') tipoRuta = 'ver-ficha-institucional';
+  const generarQR = async (ficha) => {
+    let tipoRuta = '';
+    if (ficha.coleccion === 'fichas_individuales') tipoRuta = 'ver-ficha-individual';
+    else if (ficha.coleccion === 'fichas_familiares') tipoRuta = 'ver-ficha-familiar';
+    else if (ficha.coleccion === 'fichas_institucionales') tipoRuta = 'ver-ficha-institucional';
 
-      const urlQR = `https://medqrchile.cl/${tipoRuta}/${ficha.id}`;
+    const urlQR = `https://medqrchile.cl/${tipoRuta}/${ficha.id}`;
 
-      const canvas = document.createElement('canvas');
-      await QRCode.toCanvas(canvas, urlQR, {
-        errorCorrectionLevel: 'H',
-        width: 300,
-      });
+    const canvas = document.createElement('canvas');
+    await QRCode.toCanvas(canvas, urlQR, { errorCorrectionLevel: 'H', width: 300 });
 
-      const ctx = canvas.getContext('2d');
-      const logo = new Image();
-      logo.src = logoImage;
+    const ctx = canvas.getContext('2d');
+    const logo = new Image();
+    logo.src = logoImage;
 
+    return new Promise((resolve, reject) => {
       logo.onload = () => {
         const size = 60;
         const x = (canvas.width - size) / 2;
         const y = (canvas.height - size) / 2;
         ctx.drawImage(logo, x, y, size, size);
-
-        const link = document.createElement('a');
-        link.download = `qr_medqr_${ficha.id}.png`;
-        link.href = canvas.toDataURL();
-        link.click();
-
-        setDescargadas(prev => ({ ...prev, [ficha.id]: true }));
+        resolve(canvas.toDataURL());
       };
+      logo.onerror = () => reject('Error cargando logo');
+    });
+  };
 
-      logo.onerror = () => {
-        alert('No se pudo cargar el logo');
-      };
-    } catch (e) {
-      console.error('Error generando QR con logo:', e);
-      alert('Error al generar el QR');
+  const verQR = async (ficha) => {
+    try {
+      const dataUrl = await generarQR(ficha);
+      setQrActual(dataUrl);
+      setMostrarQR(true);
+    } catch (err) {
+      alert(err);
     }
   };
 
+  const descargarQR = async (ficha) => {
+    const dataUrl = await generarQR(ficha);
+    const link = document.createElement('a');
+    link.download = `qr_medqr_${ficha.id}.png`;
+    link.href = dataUrl;
+    link.click();
+    setDescargadas(prev => ({ ...prev, [ficha.id]: true }));
+  };
+
+  const fichasFiltradas = fichas.filter(f =>
+    (f.nombre || '').toLowerCase().includes(filtro.toLowerCase()) ||
+    (f.rut || '').toLowerCase().includes(filtro.toLowerCase())
+  );
+
   return (
-    <div style={{ padding: 20, fontFamily: 'Arial, sans-serif' }}>
+    <div style={{ padding: 20 }}>
       <img src={logoImage} alt="Logo MedQR Chile" style={{ width: 150, marginBottom: 20 }} />
+      <h1 style={{ color: '#00bfa5', textAlign: 'center' }}>Panel de Administración</h1>
 
-      <h1 style={{ color: '#00bfa5', marginBottom: 20, textAlign: 'center' }}>Panel de Administración</h1>
-
-      <button
-        onClick={() => navigate('/')}
-        style={{
-          backgroundColor: '#00bfa5',
-          color: 'white',
-          border: 'none',
-          borderRadius: 8,
-          padding: '10px 20px',
-          cursor: 'pointer',
-          marginBottom: 30,
-        }}
-      >
+      <button onClick={() => navigate('/')} style={{ marginBottom: 20 }}>
         ← Volver atrás
       </button>
 
-      {fichas.length === 0 ? (
-        <p style={{ textAlign: 'center', color: '#666' }}>Cargando fichas...</p>
+      <div style={{ marginBottom: 20, display: 'flex', alignItems: 'center' }}>
+        <FaSearch style={{ marginRight: 8 }} />
+        <input
+          type="text"
+          placeholder="Buscar por nombre o RUT..."
+          value={filtro}
+          onChange={e => setFiltro(e.target.value)}
+          style={{ padding: 8, borderRadius: 4, border: '1px solid #ccc', flex: 1 }}
+        />
+      </div>
+
+      {fichasFiltradas.length === 0 ? (
+        <p style={{ textAlign: 'center' }}>No se encontraron fichas.</p>
       ) : (
-        <table
-          style={{
-            width: '100%',
-            borderCollapse: 'collapse',
-            boxShadow: '0 0 10px rgba(0, 191, 165, 0.3)',
-            borderRadius: 12,
-            overflow: 'hidden',
-          }}
-        >
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead style={{ backgroundColor: '#00bfa5', color: 'white' }}>
             <tr>
-              <th style={{ padding: 12, textAlign: 'left' }}>Nombre</th>
-              <th style={{ padding: 12, textAlign: 'left' }}>Tipo de Ficha</th>
-              <th style={{ padding: 12, textAlign: 'center' }}>Descargar QR</th>
-              <th style={{ padding: 12, textAlign: 'center' }}>Estado</th>
+              <th>Nombre</th>
+              <th>Tipo</th>
+              <th>Creación</th>
+              <th>Últ. actualización</th>
+              <th>Acciones</th>
+              <th>Estado</th>
             </tr>
           </thead>
-
           <tbody>
-            {fichas.map((ficha, index) => (
-              <tr
-                key={ficha.id}
-                style={{
-                  backgroundColor: index % 2 === 0 ? '#f0fdfd' : 'white',
-                }}
-              >
-                <td style={{ padding: 12 }}>{ficha.nombre || 'Sin nombre'}</td>
-                <td style={{ padding: 12, textTransform: 'capitalize' }}>
-                  {ficha.coleccion.replace('fichas_', '').replace('_', ' ')}
+            {fichasFiltradas.map((ficha, idx) => (
+              <tr key={ficha.id} style={{ backgroundColor: idx % 2 ? '#f0fdfd' : 'white' }}>
+                <td>{ficha.nombre}</td>
+                <td>{ficha.coleccion.replace('fichas_', '')}</td>
+                <td>{ficha.fechaCreacion?.toDate?.().toLocaleDateString() || '—'}</td>
+                <td>{ficha.fechaActualizacion?.toDate?.().toLocaleDateString() || '—'}</td>
+                <td style={{ textAlign: 'center' }}>
+                  <button onClick={() => verQR(ficha)} title="Ver QR" style={{ marginRight: 8 }}><FaEye /></button>
+                  <button onClick={() => descargarQR(ficha)} title="Descargar QR" style={{ marginRight: 8 }}><FaDownload /></button>
+                  <button onClick={() => navigate(`/editar/${ficha.coleccion}/${ficha.id}`)} title="Editar ficha"><FaEdit /></button>
                 </td>
-                <td style={{ padding: 12, textAlign: 'center' }}>
-                  <button
-                    onClick={() => generarYDescargarQR(ficha)}
-                    style={{
-                      backgroundColor: '#00bfa5',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: 8,
-                      padding: '8px 16px',
-                      cursor: 'pointer',
-                      transition: 'background-color 0.3s',
-                    }}
-                    onMouseEnter={e => (e.target.style.backgroundColor = '#009e88')}
-                    onMouseLeave={e => (e.target.style.backgroundColor = '#00bfa5')}
-                  >
-                    Descargar QR
-                  </button>
-                </td>
-                <td style={{ padding: 12, textAlign: 'center' }}>
-                  {descargadas[ficha.id] ? '✅ Descargado' : '⬜ No descargado'}
+                <td style={{ textAlign: 'center' }}>
+                  {descargadas[ficha.id] ? <FaCheck color="green" /> : <FaTimes color="gray" />}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+      )}
+
+      {mostrarQR && qrActual && (
+        <div style={{ marginTop: 30, textAlign: 'center' }}>
+          <h3>QR generado:</h3>
+          <img src={qrActual} alt="QR generado" style={{ width: 300, marginTop: 10 }} />
+          <br />
+          <button onClick={() => setMostrarQR(false)} style={{ marginTop: 10 }}>Cerrar</button>
+        </div>
       )}
     </div>
   );
