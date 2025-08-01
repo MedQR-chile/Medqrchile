@@ -3,7 +3,7 @@ import { useAuth } from './AuthContext';
 import { db, storage } from './firebase.js';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import '../index.css';
 
 function VerFichaIndividual() {
