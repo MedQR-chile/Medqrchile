@@ -4,7 +4,7 @@ import { db, storage } from './firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useNavigate } from 'react-router-dom';
-import '../index.css'; // Asegúrate de que este archivo tenga los mismos estilos
+import '../index.css';
 
 function Familiar() {
   const { user } = useAuth();
@@ -20,9 +20,14 @@ function Familiar() {
     alergias: '',
     enfermedades: '',
     medicamentos: '',
+    grupoSanguineo: '',
+    cirugiasPrevias: '',
     contactoNombre: '',
     contactoParentesco: '',
     contactoNumero: '',
+    contactoNombre2: '',
+    contactoParentesco2: '',
+    contactoNumero2: '',
     observaciones: '',
   });
   const [foto, setFoto] = useState(null);
@@ -93,6 +98,12 @@ function Familiar() {
         <label>Medicamentos de uso habitual</label>
         <textarea name="medicamentos" onChange={handleChange} value={form.medicamentos} />
 
+        <label>Grupo sanguíneo</label>
+        <input name="grupoSanguineo" onChange={handleChange} value={form.grupoSanguineo} />
+
+        <label>Cirugías previas</label>
+        <textarea name="cirugiasPrevias" onChange={handleChange} value={form.cirugiasPrevias} />
+
         <h4>Contacto de Emergencia</h4>
         <label>Nombre</label>
         <input name="contactoNombre" onChange={handleChange} value={form.contactoNombre} />
@@ -102,6 +113,16 @@ function Familiar() {
 
         <label>Número</label>
         <input name="contactoNumero" onChange={handleChange} value={form.contactoNumero} />
+
+        <h4>Segundo Contacto de Emergencia</h4>
+        <label>Nombre</label>
+        <input name="contactoNombre2" onChange={handleChange} value={form.contactoNombre2} />
+
+        <label>Parentesco</label>
+        <input name="contactoParentesco2" onChange={handleChange} value={form.contactoParentesco2} />
+
+        <label>Número</label>
+        <input name="contactoNumero2" onChange={handleChange} value={form.contactoNumero2} />
 
         <label>Observaciones</label>
         <textarea name="observaciones" onChange={handleChange} value={form.observaciones} />
@@ -114,7 +135,6 @@ function Familiar() {
         </button>
       </form>
 
-      {/* Botón Volver atrás */}
       <button
         style={{
           backgroundColor: '#00bfa5',
