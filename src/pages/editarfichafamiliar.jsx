@@ -90,93 +90,77 @@ function EditarFichaFamiliar() {
     <div className="form-container">
       <h2>Editar Ficha Familiar</h2>
       <form onSubmit={handleSubmit}>
-        {/* ... todos tus campos ... */}
+        <label>Nombre</label>
+        <input name="nombre" value={form.nombre} onChange={handleChange} required />
 
-        <div className="form-group">
-          <label>Nombre</label>
-          <input name="nombre" value={form.nombre} onChange={handleChange} required />
-        </div>
+        <label>RUT</label>
+        <input name="rut" value={form.rut} onChange={handleChange} required />
 
-        <div className="form-group">
-          <label>RUT</label>
-          <input name="rut" value={form.rut} onChange={handleChange} required />
-        </div>
+        <label>Fecha de nacimiento</label>
+        <input type="date" name="fechaNacimiento" value={form.fechaNacimiento} onChange={handleChange} required />
 
-        <div className="form-group">
-          <label>Fecha de nacimiento</label>
-          <input type="date" name="fechaNacimiento" value={form.fechaNacimiento} onChange={handleChange} required />
-        </div>
+        <label>Dirección</label>
+        <input name="direccion" value={form.direccion} onChange={handleChange} required />
 
-        <div className="form-group">
-          <label>Dirección</label>
-          <input name="direccion" value={form.direccion} onChange={handleChange} required />
-        </div>
+        <label>Centro de atención preferente</label>
+        <input name="centro" value={form.centro} onChange={handleChange} />
 
-        <div className="form-group">
-          <label>Centro de atención preferente</label>
-          <input name="centro" value={form.centro} onChange={handleChange} />
-        </div>
+        <label>Previsión</label>
+        <input name="prevision" value={form.prevision} onChange={handleChange} />
 
-        <div className="form-group">
-          <label>Previsión</label>
-          <input name="prevision" value={form.prevision} onChange={handleChange} />
-        </div>
+        <label>Alergias</label>
+        <textarea name="alergias" value={form.alergias} onChange={handleChange} />
 
-        <div className="form-group">
-          <label>Alergias</label>
-          <textarea name="alergias" value={form.alergias} onChange={handleChange} />
-        </div>
+        <label>Enfermedades crónicas</label>
+        <textarea name="enfermedades" value={form.enfermedades} onChange={handleChange} />
 
-        <div className="form-group">
-          <label>Enfermedades crónicas</label>
-          <textarea name="enfermedades" value={form.enfermedades} onChange={handleChange} />
-        </div>
+        <label>Medicamentos de uso habitual</label>
+        <textarea name="medicamentos" value={form.medicamentos} onChange={handleChange} />
 
-        <div className="form-group">
-          <label>Medicamentos de uso habitual</label>
-          <textarea name="medicamentos" value={form.medicamentos} onChange={handleChange} />
-        </div>
+        <label>Grupo sanguíneo</label>
+        <input name="grupoSanguineo" value={form.grupoSanguineo || ''} onChange={handleChange} />
 
-        <h4 className="section-title">Contacto de Emergencia</h4>
+        <label>Cirugías previas</label>
+        <textarea name="cirugiasPrevias" value={form.cirugiasPrevias || ''} onChange={handleChange} />
 
-        <div className="form-group">
-          <label>Nombre</label>
-          <input name="contactoNombre" value={form.contactoNombre} onChange={handleChange} />
-        </div>
+        <h4>Contacto de Emergencia</h4>
+        <label>Nombre</label>
+        <input name="contactoNombre" value={form.contactoNombre || ''} onChange={handleChange} />
 
-        <div className="form-group">
-          <label>Parentesco</label>
-          <input name="contactoParentesco" value={form.contactoParentesco} onChange={handleChange} />
-        </div>
+        <label>Parentesco</label>
+        <input name="contactoParentesco" value={form.contactoParentesco || ''} onChange={handleChange} />
 
-        <div className="form-group">
-          <label>Número</label>
-          <input name="contactoNumero" value={form.contactoNumero} onChange={handleChange} />
-        </div>
+        <label>Número</label>
+        <input name="contactoNumero" value={form.contactoNumero || ''} onChange={handleChange} />
 
-        <div className="form-group">
-          <label>Observaciones</label>
-          <textarea name="observaciones" value={form.observaciones} onChange={handleChange} />
-        </div>
+        <h4>Segundo Contacto de Emergencia</h4>
+        <label>Nombre</label>
+        <input name="contactoNombre2" value={form.contactoNombre2 || ''} onChange={handleChange} />
+
+        <label>Parentesco</label>
+        <input name="contactoParentesco2" value={form.contactoParentesco2 || ''} onChange={handleChange} />
+
+        <label>Número</label>
+        <input name="contactoNumero2" value={form.contactoNumero2 || ''} onChange={handleChange} />
+
+        <label>Observaciones</label>
+        <textarea name="observaciones" value={form.observaciones} onChange={handleChange} />
 
         {form.fotoURL && (
-          <div className="form-group">
+          <>
             <label>Foto actual:</label>
             <img src={form.fotoURL} alt="foto actual" style={{ width: 100, borderRadius: 6 }} />
-          </div>
+          </>
         )}
 
-        <div className="form-group">
-          <label>Actualizar foto (opcional)</label>
-          <input type="file" accept="image/*" onChange={handleChange} />
-        </div>
+        <label>Actualizar foto (opcional)</label>
+        <input type="file" accept="image/*" onChange={handleChange} />
 
         <button type="submit" className="btn-submit">
           Guardar cambios
         </button>
       </form>
 
-      {/* Botón Volver atrás */}
       <button
         style={buttonStyle}
         onMouseEnter={e => (e.currentTarget.style.backgroundColor = buttonHoverColor)}
