@@ -83,9 +83,14 @@ function VerFichaFamiliar() {
         <div className="view-field">
           <strong>Medicamentos:</strong> {ficha.medicamentos || '—'}
         </div>
+        <div className="view-field">
+          <strong>Grupo sanguíneo:</strong> {ficha.grupoSanguineo || '—'}
+        </div>
+        <div className="view-field">
+          <strong>Cirugías previas:</strong> {ficha.cirugiasPrevias || '—'}
+        </div>
 
         <h4 className="section-title">Contacto de Emergencia</h4>
-
         <div className="view-field">
           <strong>Nombre:</strong> {ficha.contactoNombre || '—'}
         </div>
@@ -96,11 +101,21 @@ function VerFichaFamiliar() {
           <strong>Número:</strong> {ficha.contactoNumero || '—'}
         </div>
 
+        <h4 className="section-title">Segundo Contacto de Emergencia</h4>
+        <div className="view-field">
+          <strong>Nombre:</strong> {ficha.contactoNombre2 || '—'}
+        </div>
+        <div className="view-field">
+          <strong>Parentesco:</strong> {ficha.contactoParentesco2 || '—'}
+        </div>
+        <div className="view-field">
+          <strong>Número:</strong> {ficha.contactoNumero2 || '—'}
+        </div>
+
         <div className="view-field">
           <strong>Observaciones:</strong> {ficha.observaciones || '—'}
         </div>
 
-        {/* Botón Volver atrás */}
         <button
           style={buttonStyle}
           onMouseEnter={e => (e.currentTarget.style.backgroundColor = buttonHoverColor)}
@@ -115,3 +130,4 @@ function VerFichaFamiliar() {
 }
 
 export default VerFichaFamiliar;
+
